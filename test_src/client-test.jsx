@@ -1,7 +1,8 @@
 // Run on shell while running server to test :)
 
 const io = require('socket.io-client');
-const socket = io('http://localhost:5173');
+const serverURL = 'http://localhost:5173'
+const socket = io(serverURL);
 
 socket.on('connect', () => {
   console.log('Connected to the server.');
