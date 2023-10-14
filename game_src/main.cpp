@@ -1,3 +1,9 @@
+/* Steps to to run server app:
+ * 1. Check console to make sure you're in 'cd game_src'
+ * 2. Type 'make main' after each final edit
+ * 3. Run index.js (then client)
+ */
+
 #include <iostream>
 
 using namespace std;
