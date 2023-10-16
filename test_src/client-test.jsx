@@ -1,31 +1,67 @@
 // Run on shell while running server to test :)
 
 const io = require('socket.io-client');
-const serverURL = 'http://localhost:5173'
+const readline = require('readline');
+const serverURL = 'http://localhost:3000';
 const socket = io(serverURL);
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
 socket.on('connect', () => {
   console.log('Connected to the server.');
 
-  // Simulate starting application
-  socket.emit('start-application', (response) => {
-    // console.log('Start Message:', response);
-  });
+  const displayWelcome = () => {
+    socket.emit('display-welcome', (response) => {
+      console.log(response);
+    });
+  };
   
-  // Simulate exiting application
-  socket.emit('exit-application', (response) => {
-    // console.log('Exit Message:', response);
-  });
+  const displayIntroduction = () => {
+    socket.emit('display-introduction', (response) => {
+      console.log(response);
+    });
+  };
   
+  // @TODO: Optional Requirement - Include skippable tutorial
+  
+  const startGame = () => {
+    socket.emit('start-application', (response) => {
+      console.log(response);
+    });
+  };
+  
+  const exitGame = () => {
+    socket.emit('exit-application', (response) => {
+      console.log(response);
+      rl.close();
+    });
+  };
+  
+  displayWelcome();
+  
+  rl.question('Press [Enter] to continue to the introduction... ', () => {
+    displayIntroduction();
+    
+    rl.question('Press [Enter] to start the game or type "exit" to exit... ', (answer) => {
+      if (answer.toLowerCase() === 'exit') {
+        exitGame();
+      } else {
+        startGame();
+
+        rl.question('Press [Enter] to exit the game... ', (answer) => {
+          exitGame();
+        });
+      }
+    });
+  });
 });
 
-// Listen for responses
-socket.on('start-application-response', (response) => {
-  console.log('Start Application Response:', response);
+rl.on('close', () => {
+  socket.disconnect();
+  console.log('Disconnected from the server.');
 });
 
-socket.on('exit-application-response', (response) => {
-  console.log('Exit Application Response:', response);
-});
-
-// You may press ctrl+c to exit client
+// You may also press ctrl+c to exit client
