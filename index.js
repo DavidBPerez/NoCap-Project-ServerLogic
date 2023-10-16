@@ -18,25 +18,23 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Tracks client activity (event listeners)
+let gameProcess;
+
 io.on('connection', (socket) => {
   console.log('Client connected.\n');
 
-  // Creates 'game' process(es)
   const gamePath = path.resolve(__dirname, './game_src/main');
   console.log('Game path:', gamePath);
 
-  const gameProcess = spawn(gamePath, [], { stdio: 'pipe' });
+  gameProcess = spawn(gamePath, [], { stdio: 'pipe' });
 
-  // Tracks game (data)
   gameProcess.stdout.on('data', (data) => {
     const message = data.toString();
-    console.log('Received from game:', message);
+    console.log('Received from the game:', message);
     io.emit('message-from-game', message);
 
     if (message.includes('Exiting game...')) {
-      // Send early exit response
-      socket.emit('exit-application-response', 'Application exited.');
+      socket.emit('exit-application-response', 'Application exited.'); // Early exit response
     }
   });
 
@@ -47,10 +45,10 @@ io.on('connection', (socket) => {
       You are about to embark on an adventure filled with choices
       that will shape yourself and the world around. Your decisions 
       may determine your outcomes and rewards. 
-      
+
       Are you ready to begin?
     `;
-    callback(welcomeText); // Send welcome response
+    callback(welcomeText);  // Welcome Client
   });
 
   socket.on('display-introduction', (callback) => {
@@ -60,23 +58,48 @@ io.on('connection', (socket) => {
       You find yourself somewhere on campus doing something important,
       but can't recall. This can lead you anywhere beyond reality or
       imagination depending on your choices ahead. Note: Your actions
-      may have consequences or effect your goals, choose carefully.
+      may have consequences or affect your goals; choose carefully.
     `;
-    callback(introText); // Send intro response
+    callback(introText);  // Introduce Client
   });
 
   socket.on('start-application', (callback) => {
     console.log('{Start initiated}');
     gameProcess.stdin.write('start\n');
-    
-    callback('Game started.');  // Send start response
+
+    callback('Game started.');  // Start Client
   });
 
   socket.on('exit-application', (callback) => {
     console.log('{Exit initiated}');
     gameProcess.stdin.write('exit\n');
-    
-    callback('Exiting game...'); // Send exit response
+
+    callback('Exiting game...');  // Exit Client
+  });
+
+  socket.on('start-new-journey', (callback) => {
+    if (!gameProcess || gameProcess.killed) {
+      const gamePath = path.resolve(__dirname, './game_src/main');
+      console.log('Game path:', gamePath);
+
+      gameProcess = spawn(gamePath, [], { stdio: 'pipe' });
+
+      // @TODO: Modify for frequent (individual) data inputs
+      gameProcess.stdout.on('data', (data) => {
+        const message = data.toString();
+        console.log('Received from the game:', message);
+        io.emit('message-from-game', message);
+
+        if (message.includes('Exiting game...')) {
+          socket.emit('exit-application-response', 'Application exited.');
+        }
+      });
+    }
+
+    console.log('{ New Journey initiated}');
+    gameProcess.stdin.write('new\n');
+
+    callback('New journey started.');
   });
 
   socket.on('disconnect', () => {

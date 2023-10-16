@@ -10,16 +10,21 @@ using namespace std;
 
 int main() {
   string cmd;
-  cout << "Hello :) Pretend this is the game menu." << endl;
+  cout << "Hello :) Pretend this is the game running." << endl;
 
   while (true) {
     cin >> cmd;
 
     if(cmd == "start") {
       cout << "Starting game..." << endl;
+    } else if (cmd == "new") {
+      cout << "Creating new journey..." << endl;
+      // Function here
     } else if (cmd == "exit") {
       cout << "Exiting game..." << endl;
       break;
+    } else {
+      cout << "Unrecognized game command." << endl;
     }
   }
   
